@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from datetime import date, datetime
+from datetime import datetime, timedelta
+from sqlalchemy import and_
 from dotenv import load_dotenv
 import os
 from loguru import logger
@@ -20,21 +21,34 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.command()
 async def 출석(ctx):
 	user_id = str(ctx.author.id)
-	today_datetime = datetime.now()
+	now = datetime.now()
+	today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+	tomorrow = today + timedelta(days=1)
+
 	db = SessionLocal()
 
 	try:
-		exists = db.query(Attendance).filter_by(user_id=user_id, attend_datetime=today_datetime).first()
+		# 오늘 날짜 범위 안에 해당 유저의 출석 여부 체크
+		exists = db.query(Attendance).filter(
+			and_(
+				Attendance.user_id == user_id,
+				Attendance.attend_datetime >= today,
+				Attendance.attend_datetime < tomorrow
+			)
+		).first()
+
 		if exists:
 			await ctx.send(f"{ctx.author.mention} 이미 오늘 출석했어요!")
 		else:
-			db.add(Attendance(user_id=user_id, attend_datetime=today_datetime))
+			db.add(Attendance(user_id=user_id, attend_datetime=now))
+			
 			summary = db.query(AttendanceSummary).filter_by(user_id=user_id).first()
 			if not summary:
 				summary = AttendanceSummary(user_id=user_id, total_days=1)
 				db.add(summary)
 			else:
 				summary.total_days += 1
+
 			db.commit()
 			await ctx.send(f"{ctx.author.mention} 출석 완료!")
 	except Exception as e:
@@ -45,10 +59,20 @@ async def 출석(ctx):
 
 @bot.command()
 async def 출석확인(ctx):
-	today_datetime = datetime.now()
+	today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+	tomorrow = today + timedelta(days=1)
+
 	db = SessionLocal()
 	try:
-		records = db.query(Attendance).filter_by(attend_datetime=today_datetime).all()
+		records = (
+			db.query(Attendance)
+			.filter(and_(
+				Attendance.attend_datetime >= today,
+				Attendance.attend_datetime < tomorrow
+			))
+			.all()
+		)
+
 		if records:
 			mentions = [f"<@{r.user_id}>" for r in records]
 			await ctx.send(f"오늘 출석한 사람들:\n" + "\n".join(mentions))
