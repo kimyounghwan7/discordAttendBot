@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  attend_bot:
+    build: ./
+    image: discord_bot_img
+    container_name: attend_bot
+    # ports:
+    #   - 8005:8000
+    volumes:
+      - ./:/usr/src/app
+    restart: always
+    ipc: host
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Seoul
+    command: python bot_server/main.py
+    # command: tail -F /dev/null
