@@ -19,6 +19,11 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.command()
+async def 명령어(ctx):
+	commands = ["사용 가능한 명령어", "출석", "출석확인", "출석순위"]
+	await ctx.send(f"오늘 출석한 사람들:\n" + "\n".join(commands))
+ 
+@bot.command()
 async def 출석(ctx):
 	user_id = str(ctx.author.id)
 	now = datetime.now()
