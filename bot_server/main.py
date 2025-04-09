@@ -1,15 +1,15 @@
 import discord
-from discord.ext import commands
-from datetime import datetime, timedelta
-from sqlalchemy import and_
+from discord.ext import commands, tasks
+from datetime import datetime, timedelta, time
 from dotenv import load_dotenv
 import os
 from loguru import logger
 import sys
+import asyncio
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from db_init.models import Attendance, AttendanceSummary
 from db_init.db import get_db
+from bot_server.bot_service import handle_attendance, handle_attendance_check, handle_attendance_rank, create_daily_thread
 
 load_dotenv()
 intents = discord.Intents.default()
@@ -17,6 +17,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+TODO_CHANNEL_ID = 1359320235181867057
 
 @bot.command()
 async def 명령어(ctx):
@@ -27,33 +28,7 @@ async def 명령어(ctx):
 async def 출석(ctx):
 	with get_db() as db:
 		try:
-			user_id = str(ctx.author.id)
-			now = datetime.now()
-			today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-			tomorrow = today + timedelta(days=1)
-			# 오늘 날짜 범위 안에 해당 유저의 출석 여부 체크
-			exists = db.query(Attendance).filter(
-				and_(
-					Attendance.user_id == user_id,
-					Attendance.attend_datetime >= today,
-					Attendance.attend_datetime < tomorrow
-				)
-			).first()
-
-			if exists:
-				await ctx.send(f"{ctx.author.mention} 이미 오늘 출석했어요!")
-			else:
-				db.add(Attendance(user_id=user_id, attend_datetime=now))
-				
-				summary = db.query(AttendanceSummary).filter_by(user_id=user_id).first()
-				if not summary:
-					summary = AttendanceSummary(user_id=user_id, total_days=1)
-					db.add(summary)
-				else:
-					summary.total_days += 1
-
-				db.commit()
-				await ctx.send(f"{ctx.author.mention} 출석 완료!")
+			await ctx.send(handle_attendance(ctx, db))
 		except Exception as e:
 			await ctx.send("⚠️ 출석 처리 중 오류가 발생했어요.")
 			logger.error(f"[출석 오류] {e}")
@@ -62,40 +37,43 @@ async def 출석(ctx):
 async def 출석확인(ctx):
 	with get_db() as db:
 		try:
-			today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-			tomorrow = today + timedelta(days=1)
-			records = (
-				db.query(Attendance)
-				.filter(and_(
-					Attendance.attend_datetime >= today,
-					Attendance.attend_datetime < tomorrow
-				))
-				.all()
-			)
-
-			if records:
-				mentions = [f"<@{r.user_id}>" for r in records]
+			mentions = handle_attendance_check(db)
+			if mentions:
 				await ctx.send(f"오늘 출석한 사람들:\n" + "\n".join(mentions))
-			else:
-				await ctx.send("오늘은 아직 아무도 출석하지 않았어요!")
+				return
+			await ctx.send("오늘은 아직 아무도 출석하지 않았어요!")
 		except Exception as e:
 			logger.error(e)
-
 
 @bot.command()
 async def 출석순위(ctx):
 	with get_db() as db:
 		try:
-			records = db.query(AttendanceSummary).order_by(AttendanceSummary.total_days.desc()).limit(10).all()
-			if records:
-				result = "\n".join(
-					[f"{i+1}. <@{r.user_id}> - {r.total_days}일" for i, r in enumerate(records)]
-				)
-				await ctx.send(f"출석 순위 Top 10\n{result}")
-			else:
-				await ctx.send("아직 출석 기록이 없습니다.")
+			await ctx.send(handle_attendance_rank(db))
 		except Exception as e:
 			logger.error(e)
+
+@bot.event
+async def on_ready():
+	create_thread.start()
+
+@tasks.loop(hours=24)  # 매일 24시간마다 작업 실행
+async def create_thread():
+	try:
+		now = datetime.now()
+		target_time = time(20, 50, 0)  # 오전 9시
+
+		# 매일 오전 9시에 스레드 생성
+		if now.time() >= target_time:
+			next_target = datetime.combine(now.date() + timedelta(days=1), target_time)
+		else:
+			next_target = datetime.combine(now.date(), target_time)
+
+		time_until_next = (next_target - now).total_seconds()
+		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
+		await create_daily_thread(bot, TODO_CHANNEL_ID)
+	except Exception as e:
+		logger.error(e)
 
 if __name__ == "__main__":
 	bot.run(os.getenv("DISCORD_TOKEN"))
