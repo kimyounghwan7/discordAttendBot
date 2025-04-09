@@ -10,9 +10,15 @@
 
 	3.Docker build
 
-	4.docker-compose -f docker-compose-db-init.yml up 실행.
+	4.docker-compose -f docker-compose-bot.yml up -d (command: tail -F /dev/null)
 
-	
+	5.alembic init alembic
 
-	3.db_init/
+	6.alembic.ini 안에 sqlalchemy.url = [DB주소]
+
+	7.alembic/env.py 수정 [project_root]/env.py 내용을 복사 후 붙혀넣기.
+
+	8.alembic revision --autogenerate -m "create attendance tables" 마이그레이션 파일 생성
+
+	9.alembic upgrade head 마이그레이션 적용.
 ```

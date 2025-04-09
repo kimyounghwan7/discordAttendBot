@@ -66,4 +66,5 @@ async def attend_rank(ctx):
 	finally:
 		db.close()
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+if __name__ == "__main__":
+	bot.run(os.getenv("DISCORD_TOKEN"))
