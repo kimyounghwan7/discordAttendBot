@@ -1,11 +1,14 @@
 import discord
 from discord.ext import commands
 from datetime import date
-from db_init.models import Attendance, AttendanceSummary
-from db_init.db import SessionLocal
 from dotenv import load_dotenv
 import os
 from loguru import logger
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from db_init.models import Attendance, AttendanceSummary
+from db_init.db import SessionLocal
 
 load_dotenv()
 intents = discord.Intents.default()
