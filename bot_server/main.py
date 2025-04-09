@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from datetime import date
+from datetime import date, datetime
 from dotenv import load_dotenv
 import os
 from loguru import logger
@@ -18,17 +18,17 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.command()
-async def attend(ctx):
+async def 출석(ctx):
 	user_id = str(ctx.author.id)
-	today = date.today()
+	today_datetime = datetime.now()
 	db = SessionLocal()
 
 	try:
-		exists = db.query(Attendance).filter_by(user_id=user_id, date=today).first()
+		exists = db.query(Attendance).filter_by(user_id=user_id, attend_datetime=today_datetime).first()
 		if exists:
 			await ctx.send(f"{ctx.author.mention} 이미 오늘 출석했어요!")
 		else:
-			db.add(Attendance(user_id=user_id, date=today))
+			db.add(Attendance(user_id=user_id, attend_datetime=today_datetime))
 			summary = db.query(AttendanceSummary).filter_by(user_id=user_id).first()
 			if not summary:
 				summary = AttendanceSummary(user_id=user_id, total_days=1)
@@ -44,11 +44,11 @@ async def attend(ctx):
 		db.close()
 
 @bot.command()
-async def attend_check(ctx):
-	today = date.today()
+async def 출석확인(ctx):
+	today_datetime = datetime.now()
 	db = SessionLocal()
 	try:
-		records = db.query(Attendance).filter_by(date=today).all()
+		records = db.query(Attendance).filter_by(attend_datetime=today_datetime).all()
 		if records:
 			mentions = [f"<@{r.user_id}>" for r in records]
 			await ctx.send(f"오늘 출석한 사람들:\n" + "\n".join(mentions))
@@ -58,7 +58,7 @@ async def attend_check(ctx):
 		db.close()
 
 @bot.command()
-async def attend_rank(ctx):
+async def 출석순위(ctx):
 	db = SessionLocal()
 	try:
 		records = db.query(AttendanceSummary).order_by(AttendanceSummary.total_days.desc()).limit(10).all()
