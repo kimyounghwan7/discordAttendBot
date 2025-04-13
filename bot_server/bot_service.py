@@ -1,7 +1,6 @@
 import os
 from loguru import logger
 import sys
-import asyncio
 from datetime import datetime, timedelta, time
 from sqlalchemy import and_
 
@@ -66,7 +65,6 @@ def handle_attendance_check(db):
 
 def handle_attendance_rank(db):
 	try:
-		logger.info("")
 		records = db.query(AttendanceSummary).order_by(AttendanceSummary.total_days.desc()).limit(10).all()
 		if records:
 			result = "\n".join(
