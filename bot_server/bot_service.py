@@ -80,13 +80,16 @@ async def create_daily_thread(bot, channel_id):
 		now = datetime.now()
 		channel = bot.get_channel(channel_id)
 		if channel:
+			if now.weekday() == 6:
+				await channel.send("💤 편안한 일요일 보내세요! 오늘은 아무 것도 하지 않아도 괜찮은 날이에요. 푹 쉬며 재충전하세요. 🌙")
+				return
 			thread_name = now.strftime('%m/%d') + " To-Do List"
 			thread = await channel.create_thread(
 				name=thread_name,
 				auto_archive_duration=1440  # 24시간
 			)
-			thread_link = thread.jump_url  # 생성된 쓰레드의 링크
-			await channel.send(f"Good Day!  {thread_link}")
+			thread_link = thread.jump_url # 생성된 쓰레드의 링크
+			await channel.send(f"Good Day! {thread_link}")
 			await thread.send(f"기분 좋은 {now.strftime('%m')} 월 {now.strftime('%d')}입니다. \n오늘 학습 목표를 입력해주세요 :)")
 			return
 		logger.error("쓰레드 생성 가능한 채널이 없습니다.")

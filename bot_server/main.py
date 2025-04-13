@@ -73,7 +73,7 @@ async def create_thread():
 		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
 
 		if next_target.weekday() == 6:
-			logger.info("일요일이므로 스레드 생성을 건너뜁니다.")
+			logger.info("일요일이라서 스킵")
 			return
 
 		await create_daily_thread(bot, TODO_CHANNEL_ID)
