@@ -72,6 +72,10 @@ async def create_thread():
 		time_until_next = (next_target - now).total_seconds()
 		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
 
+		if next_target.month == 5 and next_target.day <= 6 and next_target.day >= 1:
+			logger.info("연휴다~")
+			return
+  
 		if next_target.weekday() == 6 or next_target.weekday() == 5:
 			logger.info("일요일이라서 스킵")
 			return
