@@ -61,7 +61,7 @@ async def on_ready():
 async def create_thread():
 	try:
 		now = datetime.now()
-		target_time = time(20, 50, 0)
+		target_time = time(19, 50, 0)
 
 		# 매일 오전 9시에 스레드 생성
 		if now.time() >= target_time:
@@ -71,10 +71,6 @@ async def create_thread():
 
 		time_until_next = (next_target - now).total_seconds()
 		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
-
-		if next_target.month == 5 and next_target.day <= 6 and next_target.day >= 2:
-			logger.info("연휴다~")
-			return
   
 		if next_target.weekday() == 6 or next_target.weekday() == 5:
 			logger.info("일요일이라서 스킵")
