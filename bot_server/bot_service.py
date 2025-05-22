@@ -15,8 +15,8 @@ def handle_attendance(ctx, db):
 		tomorrow = today + timedelta(days=1)
 
 		# 출석 가능 시간대: 20:50 ~ 23:00
-		start_time = time(19, 50)
-		end_time = time(22, 0)
+		start_time = time(10, 50)
+		end_time = time(23, 0)
 
 		if not (start_time <= now.time() < end_time): 
 			return "⏰ 출석 가능한 시간은 **19:50부터 22:00까지**예요!"
@@ -75,21 +75,25 @@ def handle_attendance_rank(db):
 	except Exception as e:
 		logger.error(e)
 
-async def create_daily_thread(bot, channel_id):
+async def create_daily_thread(bot, todo_channel_id, attend_channel_id, db):
 	try:
 		now = datetime.now()
-		channel = bot.get_channel(channel_id)
-		if channel:
+		attend_channel = bot.get_channel(attend_channel_id)
+		if attend_channel:
+			await attend_channel.send(handle_attendance_rank(db))
+  
+		todo_channel = bot.get_channel(todo_channel_id)
+		if todo_channel:
 			if now.weekday() == 6:
-				await channel.send("💤 편안한 일요일 보내세요! 오늘은 아무 것도 하지 않아도 괜찮은 날이에요. 푹 쉬며 재충전하세요. 🌙")
+				await todo_channel.send("💤 편안한 일요일 보내세요! 오늘은 아무 것도 하지 않아도 괜찮은 날이에요. 푹 쉬며 재충전하세요. 🌙")
 				return
 			thread_name = now.strftime('%m/%d') + " To-Do List"
-			thread = await channel.create_thread(
+			thread = await todo_channel.create_thread(
 				name=thread_name,
 				auto_archive_duration=1440  # 24시간
 			)
 			thread_link = thread.jump_url # 생성된 쓰레드의 링크
-			await channel.send(f"Good Day! {thread_link}")
+			await todo_channel.send(f"Good Day! {thread_link}")
 			await thread.send(f"기분 좋은 {now.strftime('%m')} 월 {now.strftime('%d')}입니다. \n오늘 학습 목표를 입력해주세요 :)")
 			return
 		logger.error("쓰레드 생성 가능한 채널이 없습니다.")

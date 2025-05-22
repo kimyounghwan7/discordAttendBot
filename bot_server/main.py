@@ -18,6 +18,7 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 TODO_CHANNEL_ID = 1359320235181867057
+ATTEND_CHANNEL_ID = 1359499532806914128
 
 @bot.command()
 async def 명령어(ctx):
@@ -39,7 +40,7 @@ async def 출석확인(ctx):
 		try:
 			mentions = handle_attendance_check(db)
 			if mentions:
-				await ctx.send(f"오늘 출석한 사람들:\n" + "\n".join(mentions))
+				await ctx.send("오늘 출석한 사람들:\n" + "\n".join(mentions))
 				return
 			await ctx.send("오늘은 아직 아무도 출석하지 않았어요!")
 		except Exception as e:
