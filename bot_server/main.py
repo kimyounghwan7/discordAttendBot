@@ -76,8 +76,8 @@ async def create_thread():
 		if next_target.weekday() == 6 or next_target.weekday() == 5:
 			logger.info("일요일이라서 스킵")
 			return
-
-		await create_daily_thread(bot, TODO_CHANNEL_ID)
+		with get_db() as db:
+			await create_daily_thread(bot, TODO_CHANNEL_ID, ATTEND_CHANNEL_ID, db)
 	except Exception as e:
 		logger.error(e)
 
