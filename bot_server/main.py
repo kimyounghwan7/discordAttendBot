@@ -73,8 +73,8 @@ async def create_thread():
 		time_until_next = (next_target - now).total_seconds()
 		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
   
-		if next_target.weekday() == 6 or next_target.weekday() == 5:
-			logger.info("일요일이라서 스킵")
+		if next_target.weekday() == 6 or next_target.weekday() == 5 or next_target.weekday() == 4:
+			logger.info("쉬는 날~")
 			return
 		with get_db() as db:
 			await create_daily_thread(bot, TODO_CHANNEL_ID, ATTEND_CHANNEL_ID, db)
