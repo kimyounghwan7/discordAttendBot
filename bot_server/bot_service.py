@@ -15,11 +15,11 @@ def handle_attendance(ctx, db):
 		tomorrow = today + timedelta(days=1)
 
 		# 출석 가능 시간대: 10:00 ~ 23:00
-		start_time = time(10, 00)
+		start_time = time(5, 00)
 		end_time = time(23, 0)
 
 		if not (start_time <= now.time() < end_time): 
-			return "⏰ 출석 가능한 시간은 **10:00부터 23:00까지**예요!"
+			return "⏰ 출석 가능한 시간은 **05:00부터 23:00까지**예요!"
 
 		# 오늘 날짜 범위 안에 해당 유저의 출석 여부 체크
 		exists = db.query(Attendance).filter(
