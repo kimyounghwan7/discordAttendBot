@@ -54,32 +54,32 @@ async def 출석순위(ctx):
 		except Exception as e:
 			logger.error(e)
 
-@bot.event
-async def on_ready():
-	create_thread.start()
+# @bot.event
+# async def on_ready():
+# 	create_thread.start()
 
-@tasks.loop(hours=24)  # 매일 24시간마다 작업 실행
-async def create_thread():
-	try:
-		now = datetime.now()
-		target_time = time(19, 50, 0)
+# @tasks.loop(hours=24)  # 매일 24시간마다 작업 실행
+# async def create_thread():
+# 	try:
+# 		now = datetime.now()
+# 		target_time = time(19, 50, 0)
 
-		# 매일 오전 9시에 스레드 생성
-		if now.time() >= target_time:
-			next_target = datetime.combine(now.date() + timedelta(days=1), target_time)
-		else:
-			next_target = datetime.combine(now.date(), target_time)
+# 		# 매일 오전 9시에 스레드 생성
+# 		if now.time() >= target_time:
+# 			next_target = datetime.combine(now.date() + timedelta(days=1), target_time)
+# 		else:
+# 			next_target = datetime.combine(now.date(), target_time)
 
-		time_until_next = (next_target - now).total_seconds()
-		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
+# 		time_until_next = (next_target - now).total_seconds()
+# 		await asyncio.sleep(time_until_next)  # 다음 실행 시간까지 대기
   
-		if next_target.weekday() == 6 or next_target.weekday() == 5 or next_target.weekday() == 4:
-			logger.info("쉬는 날~")
-			return
-		with get_db() as db:
-			await create_daily_thread(bot, TODO_CHANNEL_ID, ATTEND_CHANNEL_ID, db)
-	except Exception as e:
-		logger.error(e)
+# 		if next_target.weekday() == 6 or next_target.weekday() == 5 or next_target.weekday() == 4:
+# 			logger.info("쉬는 날~")
+# 			return
+# 		with get_db() as db:
+# 			await create_daily_thread(bot, TODO_CHANNEL_ID, ATTEND_CHANNEL_ID, db)
+# 	except Exception as e:
+# 		logger.error(e)
 
 if __name__ == "__main__":
 	bot.run(os.getenv("DISCORD_TOKEN"))
