@@ -27,4 +27,6 @@
 11.Railway or Render Backworker를 통해 배포.
 
 12. bot token, db url id pw는 배포 서비스에서 설정으로 추가.
+
+13. docker hub를 활용해서 build deploy 시간 단축.
 ```
