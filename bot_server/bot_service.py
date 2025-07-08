@@ -3,6 +3,7 @@ from loguru import logger
 import sys
 from datetime import datetime, timedelta, time
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from db_init.models import Attendance, AttendanceSummary
@@ -34,7 +35,7 @@ def handle_attendance(ctx, db):
 			return f"{ctx.author.mention} 이미 오늘 출석했어요!"
 
 		db.add(Attendance(user_id=user_id, attend_datetime=now))
-		summary = db.query(AttendanceSummary).filter_by(user_id=user_id).first()
+		summary = db.query(AttendanceSummary).filter_by(user_id=user_id, disabled=False).first()
 		if not summary:
 			summary = AttendanceSummary(user_id=user_id, total_days=1)
 			db.add(summary)
@@ -63,9 +64,9 @@ def handle_attendance_check(db):
 	except Exception as e:
 		logger.error(e)
 
-def handle_attendance_rank(db):
+def handle_attendance_rank(db:Session):
 	try:
-		records = db.query(AttendanceSummary).order_by(AttendanceSummary.total_days.desc()).limit(10).all()
+		records = db.query(AttendanceSummary).filter(~AttendanceSummary.disabled).order_by(AttendanceSummary.total_days.desc()).limit(10).all()
 		if records:
 			result = "\n".join(
 				[f"{i+1}. <@{r.user_id}> - {r.total_days}일" for i, r in enumerate(records)]

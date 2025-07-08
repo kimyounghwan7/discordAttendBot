@@ -13,5 +13,5 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
-    command: python bot_server/main.py
-    # command: tail -F /dev/null
+    # command: python bot_server/main.py
+    command: tail -F /dev/null
